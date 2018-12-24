@@ -17,7 +17,7 @@ public class Reading extends Thread{
     Boolean closereading;
     
     public Reading(String port, JFrame frame) {
-        System.out.println(port);
+        
         this.closereading = false;
         this.port = port;
         this.frame = frame;
@@ -34,22 +34,18 @@ public class Reading extends Thread{
             this.serialport.setParity​(SerialPort.ODD_PARITY);
             this.serialport.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
             this.serialport.openPort();
-            System.out.println("open port");
+
             try {
                 InputStream inputstream = serialport.getInputStream();
                 Scanner scanner = new Scanner(inputstream); 
                 scanner.nextLine();
-                System.out.println("data");
-                while(scanner.hasNextLine()) {    
+                
+                while(scanner.hasNextLine()) {          
                     if(closereading) break;
-                    
                     String data = scanner.nextLine();
-                    System.out.println(data);
-                    response(data);
-                    
-                    
+                    this.response(data);
                 }
-                System.out.println("fin while");
+                
                 scanner.close();
                 inputstream.close();
             }
@@ -63,11 +59,11 @@ public class Reading extends Thread{
         
     }
 
-    public void response(String data){
+    private void response(String data){
         
         switch(frame.getClass().getName()){
-            case "com.maypi.balance.balance": 
-                ((balance)frame).response(data);
+            case "com.maypi.balance.JFrameBalance": 
+                ((JFrameBalance)frame).response(data);
                 break;          
         }
     }

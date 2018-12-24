@@ -36,16 +36,19 @@ import javax.swing.table.TableModel;
  *
  * @author Roycer
  */
-public class balance extends javax.swing.JFrame {
+public class JFrameBalance extends javax.swing.JFrame {
 
-    ArrayList<Weight> arrayWeight = new ArrayList();
-    String tempDir = System.getProperty("java.io.tmpdir");
-    Boolean b_jButton_connect;
-    int nro = 0;
+    private ArrayList<Weight> arrayWeight = new ArrayList();
+    private String tempDir = System.getProperty("java.io.tmpdir");
+    private int nro = 0;
+    public Config config;
+    public String tempRegs = "rc_regs.bin";
+    public String tempConfig = "rc_config.bin";
+    
     /**
      * Creates new form balance
      */
-    public balance() {
+    public JFrameBalance() {
         initComponents();
         
         Image i;
@@ -54,14 +57,70 @@ public class balance extends javax.swing.JFrame {
             this.setIconImage(i);
         } catch (IOException ex) {
             System.out.println("error image");
-            Logger.getLogger(balance.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        this.loadregs();
+        this.loadweight();
         
+        //this load port
+        this.jButton_load.setMnemonic(KeyEvent.VK_F9);
+        this.jButton_download.setMnemonic(KeyEvent.VK_F12);
+        jTable_weight.getColumnModel().getColumn(0).setPreferredWidth(5);
+        jTable_weight.getColumnModel().getColumn(1).setPreferredWidth(7);
+        jTable_weight.getColumnModel().getColumn(2).setPreferredWidth(7);
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment( SwingConstants.CENTER );
+        jTable_weight.getColumnModel().getColumn(0).setCellRenderer( centerRenderer );
+        jTable_weight.setDefaultRenderer(String.class, centerRenderer);
+    }
+    
+    public void changeConfig(Config config){
+        this.loadweight(config);
+    }
+    
+     public void response(String data){
+         jTextField_weight.setText(data);
+     }
+     
+     private void loadweight(){
+         
+        try {
+            ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(tempDir+tempConfig));
+            config = (Config) objectInputStream.readObject();
+            objectInputStream.close();
+            
+            this.loadweight(config);
+            
+        } catch (Exception e) {
+        }
+        
+     }
+     
+     private void loadweight(Config config){
+         
+        if(config != null && config.isValid()){
+            
+            Reading reading = new Reading(config.getPort(),this);
+            
+            try {    
+                reading.start();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(),"ERROR",JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        else {
+            config = new Config();
+            JOptionPane.showMessageDialog(this, "Port unknow","ERROR",JOptionPane.ERROR_MESSAGE);
+        }
+     }
+     
+     private void loadregs(){
+         
         DefaultTableModel model = (DefaultTableModel) jTable_weight.getModel();
 
         try {
-            ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(tempDir+"balance.bin"));
+            ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(tempDir+tempRegs));
             arrayWeight = (ArrayList<Weight>)objectInputStream.readObject();
             objectInputStream.close();
             if(arrayWeight.size() != 0){
@@ -80,31 +139,7 @@ public class balance extends javax.swing.JFrame {
         } catch (IOException e) {
             
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(balance.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        this.loadport();
-        this.jButton_load.setMnemonic(KeyEvent.VK_F9);
-        this.jButton_download.setMnemonic(KeyEvent.VK_F12);
-        this.b_jButton_connect = true;
-        jTable_weight.getColumnModel().getColumn(0).setPreferredWidth(5);
-        jTable_weight.getColumnModel().getColumn(1).setPreferredWidth(7);
-        jTable_weight.getColumnModel().getColumn(2).setPreferredWidth(7);
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment( SwingConstants.CENTER );
-        jTable_weight.getColumnModel().getColumn(0).setCellRenderer( centerRenderer );
-        jTable_weight.setDefaultRenderer(String.class, centerRenderer);
-    }
-    
-     public void response(String data){
-         jTextField_weight.setText(data);
-     }
-     
-     private void loadport(){
-        jComboBox_port.removeAllItems();
-        jComboBox_port.addItem("");
-        for(SerialPort i : SerialPort.getCommPorts()){
-            jComboBox_port.addItem(i.getSystemPortName());
+            Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
         }
      }
      
@@ -147,7 +182,7 @@ public class balance extends javax.swing.JFrame {
         Weight weightobject = new Weight(nro, weight, unit, observation);
         arrayWeight.add(weightobject);
         
-        saveWeight(arrayWeight);
+        this.saveWeight(arrayWeight);
         model.addRow(new Object[]{nro, weight, unit, observation});
      }
 
@@ -208,7 +243,7 @@ public class balance extends javax.swing.JFrame {
                     bw.close();
                     JOptionPane.showMessageDialog(this, "Se descargo exitosamente en:\n"+file.getAbsolutePath(),"DESCARGA",JOptionPane.INFORMATION_MESSAGE);
                 } catch (IOException ex) {
-                    Logger.getLogger(balance.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
                 }    
             }
             else{
@@ -216,15 +251,14 @@ public class balance extends javax.swing.JFrame {
             }
             
         }
-     }
-     
+     }     
      private void saveWeight(ArrayList<Weight> arrayWeight){
          try {
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(tempDir+"balance.bin"));
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(tempDir+tempRegs));
             objectOutputStream.writeObject(arrayWeight);
             objectOutputStream.close();
         } catch (IOException ex) {
-            Logger.getLogger(balance.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
         }
      }
     /**
@@ -242,17 +276,16 @@ public class balance extends javax.swing.JFrame {
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
         jPanel2 = new javax.swing.JPanel();
-        jComboBox_port = new javax.swing.JComboBox<>();
-        jTextField_weight = new javax.swing.JTextField();
-        jButton_load = new javax.swing.JButton();
-        jLabel3 = new javax.swing.JLabel();
-        jButton_download = new javax.swing.JButton();
-        jButton_connect = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTable_weight = new javax.swing.JTable();
-        jButton_clean = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
+        jTextField_weight = new javax.swing.JTextField();
         jTextField_observation = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
+        jButton_load = new javax.swing.JButton();
+        jButton_clean = new javax.swing.JButton();
+        jButton_download = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -279,57 +312,6 @@ public class balance extends javax.swing.JFrame {
         setForeground(java.awt.Color.red);
 
         jPanel2.setBackground(new java.awt.Color(255, 255, 255));
-
-        jComboBox_port.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jComboBox_portMouseClicked(evt);
-            }
-        });
-        jComboBox_port.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox_portActionPerformed(evt);
-            }
-        });
-
-        jTextField_weight.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
-        jTextField_weight.setText("0.00 mg");
-        jTextField_weight.setEnabled(false);
-
-        jButton_load.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton_load.setText("Cargar (Alt + F9)");
-        jButton_load.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton_loadActionPerformed(evt);
-            }
-        });
-        jButton_load.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                jButton_loadKeyPressed(evt);
-            }
-        });
-
-        jLabel3.setText("Peso Balanza");
-
-        jButton_download.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton_download.setText("Descargar (Alt + F12)");
-        jButton_download.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton_downloadActionPerformed(evt);
-            }
-        });
-        jButton_download.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                jButton_downloadKeyPressed(evt);
-            }
-        });
-
-        jButton_connect.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton_connect.setText("Conectar");
-        jButton_connect.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton_connectActionPerformed(evt);
-            }
-        });
 
         jTable_weight.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jTable_weight.setModel(new javax.swing.table.DefaultTableModel(
@@ -360,6 +342,25 @@ public class balance extends javax.swing.JFrame {
             jTable_weight.getColumnModel().getColumn(2).setResizable(false);
         }
 
+        jTextField_weight.setFont(new java.awt.Font("Tahoma", 1, 36)); // NOI18N
+        jTextField_weight.setText("0.00 mg");
+        jTextField_weight.setEnabled(false);
+
+        jLabel1.setText("Observacion");
+
+        jButton_load.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton_load.setText("Cargar (Alt + F9)");
+        jButton_load.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton_loadActionPerformed(evt);
+            }
+        });
+        jButton_load.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jButton_loadKeyPressed(evt);
+            }
+        });
+
         jButton_clean.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         jButton_clean.setText("Limpiar");
         jButton_clean.addActionListener(new java.awt.event.ActionListener() {
@@ -373,7 +374,70 @@ public class balance extends javax.swing.JFrame {
             }
         });
 
-        jLabel1.setText("Observacion");
+        jButton_download.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton_download.setText("Descargar (Alt + F12)");
+        jButton_download.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton_downloadActionPerformed(evt);
+            }
+        });
+        jButton_download.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jButton_downloadKeyPressed(evt);
+            }
+        });
+
+        jButton1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton1.setText("Configuración");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(jTextField_weight)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jButton_download, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                .addGap(0, 1, Short.MAX_VALUE)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jButton_clean, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 213, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jButton_load, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 213, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jTextField_observation, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 213, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addContainerGap())))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTextField_weight, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTextField_observation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton_load, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton_clean, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton_download, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -381,50 +445,19 @@ public class balance extends javax.swing.JFrame {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton_download, javax.swing.GroupLayout.PREFERRED_SIZE, 213, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton_clean, javax.swing.GroupLayout.PREFERRED_SIZE, 213, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton_connect, javax.swing.GroupLayout.PREFERRED_SIZE, 216, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton_load, javax.swing.GroupLayout.PREFERRED_SIZE, 216, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField_observation, javax.swing.GroupLayout.PREFERRED_SIZE, 216, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField_weight, javax.swing.GroupLayout.PREFERRED_SIZE, 213, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel1)
-                    .addComponent(jComboBox_port, javax.swing.GroupLayout.PREFERRED_SIZE, 213, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(632, Short.MAX_VALUE))
-            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(jPanel2Layout.createSequentialGroup()
-                    .addGap(241, 241, 241)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 604, Short.MAX_VALUE)
-                    .addContainerGap()))
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 598, Short.MAX_VALUE)
+                .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+            .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jComboBox_port, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(12, 12, 12)
-                .addComponent(jButton_connect, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField_weight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(13, 13, 13)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField_observation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton_load, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 151, Short.MAX_VALUE)
-                .addComponent(jButton_clean, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton_download, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 439, Short.MAX_VALUE))
                 .addContainerGap())
-            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(jPanel2Layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 439, Short.MAX_VALUE)
-                    .addContainerGap()))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -440,31 +473,6 @@ public class balance extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void jComboBox_portActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox_portActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jComboBox_portActionPerformed
-
-    private void jComboBox_portMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jComboBox_portMouseClicked
-        // TODO add your handling code here:
-        this.loadport();
-    }//GEN-LAST:event_jComboBox_portMouseClicked
-
-    private void jButton_connectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_connectActionPerformed
-        // TODO add your handling code here:
-        String port = jComboBox_port.getSelectedItem().toString();
-        Reading reading = new Reading(port,this);
-        if(port.length() != 0){
-            try {    
-                reading.start();
-                this.b_jButton_connect = false;
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, e.getMessage(),"ERROR",JOptionPane.ERROR_MESSAGE);
-            }
-        }
-        else
-            JOptionPane.showMessageDialog(this, "Port unknow","ERROR",JOptionPane.ERROR_MESSAGE);
-    }//GEN-LAST:event_jButton_connectActionPerformed
 
     private void jButton_downloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_downloadActionPerformed
         this.download();
@@ -504,6 +512,13 @@ public class balance extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButton_cleanKeyPressed
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        JFrameConfiguration jframeConfiguration = new JFrameConfiguration();
+        jframeConfiguration.setJFrameBalance(this);
+        jframeConfiguration.setVisible(true);
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -521,35 +536,41 @@ public class balance extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(balance.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(JFrameBalance.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(balance.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(JFrameBalance.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(balance.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(JFrameBalance.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(balance.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(JFrameBalance.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new balance().setVisible(true);
+                new JFrameBalance().setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton_clean;
-    private javax.swing.JButton jButton_connect;
     private javax.swing.JButton jButton_download;
     private javax.swing.JButton jButton_load;
-    private javax.swing.JComboBox<String> jComboBox_port;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
