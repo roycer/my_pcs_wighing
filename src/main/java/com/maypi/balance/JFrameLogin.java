@@ -98,12 +98,14 @@ public class JFrameLogin extends javax.swing.JFrame {
         });
 
         jTextField_user.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jTextField_user.setText("operador");
 
         jLabel1.setText("Usuario");
 
         jLabel2.setText("Clave");
 
         jPasswordField_password.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jPasswordField_password.setText("123456");
 
         jTextField_code.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
 

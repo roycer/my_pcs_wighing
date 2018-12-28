@@ -11,7 +11,7 @@ import javax.swing.JFrame;
  *
  * @author Roycer
  */
-public class Reading extends Thread{
+public class Reading extends Thread {
     
     String port;
     SerialPort serialport;
@@ -23,11 +23,11 @@ public class Reading extends Thread{
         this.closereading = false;
         this.port = port;
         this.frame = frame;
-        this.serialport = SerialPort.getCommPort(port);  
+        this.serialport = SerialPort.getCommPort(port);
     }
     
     @Override
-    public void run(){    
+    public void run(){  
         try {
             
             this.serialport.setBaudRate(9600);
