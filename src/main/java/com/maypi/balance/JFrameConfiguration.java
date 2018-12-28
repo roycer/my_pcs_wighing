@@ -13,6 +13,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -155,22 +156,31 @@ public class JFrameConfiguration extends javax.swing.JFrame {
 
     private void jButton_guardarConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_guardarConfigActionPerformed
         // TODO add your handling code here:
-        try {
-            String port = jComboBox_port.getSelectedItem().toString();
-            this.config.setPort(port);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(tempDir+jframeBalance.tempConfig));
-            objectOutputStream.writeObject(this.config);
-            objectOutputStream.close();
-        } catch (IOException ex) {
-            Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
+        String port = jComboBox_port.getSelectedItem().toString();
+        if(port.length() > 0){
+            try {
+                this.config.setPort(port);
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(tempDir+jframeBalance.tempConfig));
+                objectOutputStream.writeObject(this.config);
+                objectOutputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Puerto no válido","INFO",JOptionPane.INFORMATION_MESSAGE);
         }
     }//GEN-LAST:event_jButton_guardarConfigActionPerformed
 
     private void jButton_ApplyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_ApplyActionPerformed
         // TODO add your handling code here:
         String port = jComboBox_port.getSelectedItem().toString();
-        this.config.setPort(port);
-        this.jframeBalance.changeConfig(this.config);
+        if(port.length() > 0){
+            this.config.setPort(port);
+            this.jframeBalance.changeConfig(this.config);
+        } else {
+            JOptionPane.showMessageDialog(this, "Puerto no válido","INFO",JOptionPane.INFORMATION_MESSAGE);
+        }
+        
        
     }//GEN-LAST:event_jButton_ApplyActionPerformed
 

@@ -3,6 +3,8 @@ package com.maypi.balance;
 import com.fazecast.jSerialComm.SerialPort;
 import java.io.InputStream;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 
 /**
@@ -50,11 +52,11 @@ public class Reading extends Thread{
                 inputstream.close();
             }
             catch (Exception e) {
-                System.out.println(e.getMessage());
+                Logger.getLogger(Reading.class.getName()).log(Level.SEVERE, null, e);
             }  
             this.closePort();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            Logger.getLogger(Reading.class.getName()).log(Level.SEVERE, null, e);
         }
         
     }
