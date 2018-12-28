@@ -17,9 +17,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -38,12 +41,14 @@ import javax.swing.table.TableModel;
  */
 public class JFrameBalance extends javax.swing.JFrame {
 
+    String service = "/weights";
     private ArrayList<Weight> arrayWeight = new ArrayList();
     private String tempDir = System.getProperty("java.io.tmpdir");
     private int nro = 0;
     public Config config;
     public String tempRegs = "rc_regs.bin";
     public String tempConfig = "rc_config.bin";
+    private String token, code;
     
     /**
      * Creates new form balance
@@ -56,7 +61,6 @@ public class JFrameBalance extends javax.swing.JFrame {
             i = ImageIO.read(getClass().getResource("/logo.png"));
             this.setIconImage(i);
         } catch (IOException ex) {
-            System.out.println("error image");
             Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
         }
 
@@ -73,6 +77,14 @@ public class JFrameBalance extends javax.swing.JFrame {
         centerRenderer.setHorizontalAlignment( SwingConstants.CENTER );
         jTable_weight.getColumnModel().getColumn(0).setCellRenderer( centerRenderer );
         jTable_weight.setDefaultRenderer(String.class, centerRenderer);
+    }
+    
+    public void setToken(String token){
+        this.token = token;
+    }
+    
+    public void setCode(String code){
+        this.code = code;
     }
     
     public void changeConfig(Config config){
@@ -183,12 +195,33 @@ public class JFrameBalance extends javax.swing.JFrame {
         arrayWeight.add(weightobject);
         
         this.saveWeight(arrayWeight);
+        this.sendWeight(weightobject);
         model.addRow(new Object[]{nro, weight, unit, observation});
+        
      }
 
+     private void sendWeight(Weight weightobject){
+         Service service = new Service();
+         try {
+            URL url = new URL("http://"+Constan.ruta+this.service);
+            Map<String,Object> params = new LinkedHashMap<>();
+            params.put("code", this.code);
+            params.put("nro", weightobject.nro);
+            params.put("weight", weightobject.weight);
+            params.put("unit", weightobject.unit);
+            params.put("observation", weightobject.observation);
+            
+            String response = service.response(url, params, this.token);
+            
+         } catch (Exception e) {
+         }
+         
+         
+     }
+     
      private void cleanreg(){
         arrayWeight.clear();
-        saveWeight(arrayWeight);
+        this.saveWeight(arrayWeight);
         int dialogButton = JOptionPane.YES_NO_OPTION;
         int dialogResult = JOptionPane.showConfirmDialog (null, "Desea limpiar registro?","Warning",dialogButton);
         if(dialogResult == JOptionPane.YES_OPTION){
@@ -209,7 +242,9 @@ public class JFrameBalance extends javax.swing.JFrame {
         if (userSelection == JFileChooser.APPROVE_OPTION) {
             File fileToSave = chooser.getSelectedFile();
             TableModel model = jTable_weight.getModel();
-            
+            int nRow = model.getRowCount();
+            int nCol = model.getColumnCount();
+
             String filename = fileToSave.getAbsoluteFile().toString();
             System.out.println(filename.indexOf(".csv"));
             if(filename.indexOf(".csv")<0){
@@ -230,17 +265,18 @@ public class JFrameBalance extends javax.swing.JFrame {
                 try {
                     out = new FileWriter(file);
                     BufferedWriter bw = new BufferedWriter(out);
-                    for (int i=0;i<model.getColumnCount();i++){
+                    for (int i=0;i<nCol;i++){
                       bw.write(model.getColumnName(i)+",");
                     }
                     bw.write("\n");
-                    for (int i=0;i<model.getRowCount();i++){
-                      for (int j=0;j<model.getColumnCount();j++){
+                    for (int i=0;i<nRow;i++){
+                      for (int j=0;j<nCol;j++){
                         bw.write(model.getValueAt(i,j).toString()+",");
                       }
                       bw.write("\n");
                     }
                     bw.close();
+                    
                     JOptionPane.showMessageDialog(this, "Se descargo exitosamente en:\n"+file.getAbsolutePath(),"DESCARGA",JOptionPane.INFORMATION_MESSAGE);
                 } catch (IOException ex) {
                     Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
@@ -343,7 +379,6 @@ public class JFrameBalance extends javax.swing.JFrame {
         }
 
         jTextField_weight.setFont(new java.awt.Font("Tahoma", 1, 36)); // NOI18N
-        jTextField_weight.setText("0.00 mg");
         jTextField_weight.setEnabled(false);
 
         jLabel1.setText("Observacion");

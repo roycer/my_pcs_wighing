@@ -5,12 +5,26 @@
  */
 package com.maypi.balance;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import org.json.JSONObject;
 /**
  *
  * @author rcordova
  */
 public class JFrameLogin extends javax.swing.JFrame {
 
+    String service = "/login";
+    String code = "";
     /**
      * Creates new form JFrameLogin
      */
@@ -18,8 +32,39 @@ public class JFrameLogin extends javax.swing.JFrame {
         initComponents();
     }
 
-    private void login() throws Exception {
+    private void login(String username, String password) {
         
+        try {
+            
+            URL url = new URL("http://"+Constan.ruta+this.service);
+            Map<String,Object> params = new LinkedHashMap<>();
+            params.put("username", username);
+            params.put("password", password);
+
+            Service service = new Service();
+            String response = service.response(url, params, "");
+
+            System.out.println(response);
+
+            JSONObject jSONObject = new JSONObject(response.toString());
+            String token = jSONObject.getString("token");
+            
+            this.openJframeBalance(token, this.code);
+
+        } catch (Exception e) {
+            
+            JOptionPane.showMessageDialog(this,"Credenciales erroneas","ERROR",JOptionPane.ERROR_MESSAGE);
+            Logger.getLogger(JFrameLogin.class.getName()).log(Level.SEVERE, null, e);
+
+        }
+        
+    }
+    
+    private void openJframeBalance(String token, String code){
+        JFrameBalance jframeBalance = new JFrameBalance();
+        jframeBalance.setToken(token);
+        jframeBalance.setCode(code);
+        jframeBalance.setVisible(true);
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -33,9 +78,11 @@ public class JFrameLogin extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jButton_Login = new javax.swing.JButton();
         jTextField_user = new javax.swing.JTextField();
-        jTextField_password = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
+        jPasswordField_password = new javax.swing.JPasswordField();
+        jTextField_code = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -51,11 +98,15 @@ public class JFrameLogin extends javax.swing.JFrame {
 
         jTextField_user.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
 
-        jTextField_password.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-
         jLabel1.setText("Usuario");
 
         jLabel2.setText("Clave");
+
+        jPasswordField_password.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+
+        jTextField_code.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+
+        jLabel3.setText("Identificador");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -64,28 +115,34 @@ public class JFrameLogin extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(112, 112, 112)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel2)
-                    .addComponent(jLabel1)
+                    .addComponent(jLabel3)
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jTextField_password)
+                        .addComponent(jLabel2)
+                        .addComponent(jLabel1)
                         .addComponent(jTextField_user)
-                        .addComponent(jButton_Login, javax.swing.GroupLayout.DEFAULT_SIZE, 176, Short.MAX_VALUE)))
+                        .addComponent(jButton_Login, javax.swing.GroupLayout.DEFAULT_SIZE, 176, Short.MAX_VALUE)
+                        .addComponent(jPasswordField_password)
+                        .addComponent(jTextField_code)))
                 .addContainerGap(112, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(56, Short.MAX_VALUE)
+                .addContainerGap(49, Short.MAX_VALUE)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTextField_user, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel2)
-                .addGap(3, 3, 3)
-                .addComponent(jTextField_password, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(32, 32, 32)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPasswordField_password, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(16, 16, 16)
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTextField_code, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(22, 22, 22)
                 .addComponent(jButton_Login)
-                .addGap(93, 93, 93))
+                .addGap(49, 49, 49))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -105,6 +162,17 @@ public class JFrameLogin extends javax.swing.JFrame {
     private void jButton_LoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_LoginActionPerformed
         // TODO add your handling code here:
         
+        String username = jTextField_user.getText();
+        String password = jPasswordField_password.getText();
+        code = jTextField_code.getText();
+        
+        if(code.length() > 0){
+            this.login(username, password);
+        }
+        else{
+            JOptionPane.showMessageDialog(this,"Ingrese Codigo de Batch","ERROR",JOptionPane.ERROR_MESSAGE);
+        }
+             
     }//GEN-LAST:event_jButton_LoginActionPerformed
 
     /**
@@ -146,8 +214,10 @@ public class JFrameLogin extends javax.swing.JFrame {
     private javax.swing.JButton jButton_Login;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JTextField jTextField_password;
+    private javax.swing.JPasswordField jPasswordField_password;
+    private javax.swing.JTextField jTextField_code;
     private javax.swing.JTextField jTextField_user;
     // End of variables declaration//GEN-END:variables
 }
