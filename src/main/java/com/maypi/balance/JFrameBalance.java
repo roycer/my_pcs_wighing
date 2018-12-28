@@ -100,9 +100,14 @@ public class JFrameBalance extends javax.swing.JFrame {
         try {
             ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(tempDir+tempConfig));
             config = (Config) objectInputStream.readObject();
-            objectInputStream.close();
             
-            this.loadweight(config);
+            objectInputStream.close();
+            if( config != null){
+                this.loadweight(config);
+            }
+            else
+                System.out.println("imprime");
+            
             
         } catch (Exception e) {
         }

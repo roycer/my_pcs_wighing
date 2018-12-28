@@ -65,6 +65,7 @@ public class JFrameLogin extends javax.swing.JFrame {
         jframeBalance.setToken(token);
         jframeBalance.setCode(code);
         jframeBalance.setVisible(true);
+        this.setVisible(false);
     }
     /**
      * This method is called from within the constructor to initialize the form.

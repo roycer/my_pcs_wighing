@@ -28,6 +28,7 @@ public class JFrameConfiguration extends javax.swing.JFrame {
      */
     public JFrameConfiguration() {
         initComponents();
+        this.loadport();
     }
 
     public void setJFrameBalance(JFrameBalance jframeBalance){
@@ -37,6 +38,9 @@ public class JFrameConfiguration extends javax.swing.JFrame {
         
         if(config != null && config.isValid()){
             this.jTextField_port.setText(config.getPort());
+        }
+        else if(config == null){
+            config = new Config();
         }
     }
     
@@ -152,6 +156,7 @@ public class JFrameConfiguration extends javax.swing.JFrame {
     private void jButton_guardarConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_guardarConfigActionPerformed
         // TODO add your handling code here:
         try {
+            
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(tempDir+jframeBalance.tempConfig));
             objectOutputStream.writeObject(this.config);
             objectOutputStream.close();
