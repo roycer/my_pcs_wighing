@@ -51,7 +51,7 @@ public class JFrameConfiguration extends javax.swing.JFrame {
             jComboBox_port.addItem(i.getSystemPortName());
         }
     }
-    
+  
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -156,22 +156,21 @@ public class JFrameConfiguration extends javax.swing.JFrame {
     private void jButton_guardarConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_guardarConfigActionPerformed
         // TODO add your handling code here:
         try {
-            
+            String port = jComboBox_port.getSelectedItem().toString();
+            this.config.setPort(port);
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(tempDir+jframeBalance.tempConfig));
             objectOutputStream.writeObject(this.config);
             objectOutputStream.close();
         } catch (IOException ex) {
             Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
         }
-            
-        
     }//GEN-LAST:event_jButton_guardarConfigActionPerformed
 
     private void jButton_ApplyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_ApplyActionPerformed
         // TODO add your handling code here:
         String port = jComboBox_port.getSelectedItem().toString();
         this.config.setPort(port);
-        jframeBalance.changeConfig(this.config);
+        this.jframeBalance.changeConfig(this.config);
        
     }//GEN-LAST:event_jButton_ApplyActionPerformed
 

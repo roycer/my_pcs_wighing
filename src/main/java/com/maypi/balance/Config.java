@@ -5,63 +5,67 @@
  */
 package com.maypi.balance;
 
+import java.io.Serializable;
+
 /**
  *
  * @author rcordova
  */
-public class Config {
-   private String port;
-   private int baudRate;
-   private int numStopBits;
-   private int parity;
-   private int comPortTimeouts;
+public class Config implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
+    private String port;
+    private int baudRate;
+    private int numStopBits;
+    private int parity;
+    private int comPortTimeouts;
 
-    public Config() {
-        this.port = "";
-    }
+     public Config() {
+         this.port = "";
+     }
 
-    public String getPort() {
-        return port;
-    }
+     public String getPort() {
+         return port;
+     }
 
-    public void setPort(String port) {
-        this.port = port;
-    }
+     public void setPort(String port) {
+         this.port = port;
+     }
 
-    public int getBaudRate() {
-        return baudRate;
-    }
+     public int getBaudRate() {
+         return baudRate;
+     }
 
-    public void setBaudRate(int baudRate) {
-        this.baudRate = baudRate;
-    }
+     public void setBaudRate(int baudRate) {
+         this.baudRate = baudRate;
+     }
 
-    public int getNumStopBits() {
-        return numStopBits;
-    }
+     public int getNumStopBits() {
+         return numStopBits;
+     }
 
-    public void setNumStopBits(int numStopBits) {
-        this.numStopBits = numStopBits;
-    }
+     public void setNumStopBits(int numStopBits) {
+         this.numStopBits = numStopBits;
+     }
 
-    public int getParity() {
-        return parity;
-    }
+     public int getParity() {
+         return parity;
+     }
 
-    public void setParity(int parity) {
-        this.parity = parity;
-    }
+     public void setParity(int parity) {
+         this.parity = parity;
+     }
 
-    public int getComPortTimeouts() {
-        return comPortTimeouts;
-    }
+     public int getComPortTimeouts() {
+         return comPortTimeouts;
+     }
 
-    public void setComPortTimeouts(int comPortTimeouts) {
-        this.comPortTimeouts = comPortTimeouts;
-    }
-   
-    public boolean isValid(){
-        return (this.port.length() > 0);
-    }
-   
+     public void setComPortTimeouts(int comPortTimeouts) {
+         this.comPortTimeouts = comPortTimeouts;
+     }
+
+     public boolean isValid(){
+         return (this.port.length() > 0);
+     }
+
 }

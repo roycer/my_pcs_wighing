@@ -100,15 +100,14 @@ public class JFrameBalance extends javax.swing.JFrame {
         try {
             ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(tempDir+tempConfig));
             config = (Config) objectInputStream.readObject();
-            
             objectInputStream.close();
+            
             if( config != null){
                 this.loadweight(config);
             }
-            else
-                System.out.println("imprime");
-            
-            
+            else{
+                JOptionPane.showMessageDialog(this, "Configuracion no existe","INFO",JOptionPane.INFORMATION_MESSAGE);
+            }
         } catch (Exception e) {
         }
         
@@ -128,7 +127,7 @@ public class JFrameBalance extends javax.swing.JFrame {
         }
         else {
             config = new Config();
-            JOptionPane.showMessageDialog(this, "Port unknow","ERROR",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Puerto desconocido","ERROR",JOptionPane.ERROR_MESSAGE);
         }
      }
      
