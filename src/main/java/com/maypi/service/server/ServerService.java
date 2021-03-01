@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.maypi.balance;
+package com.maypi.service.server;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -11,26 +11,27 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  *
  * @author rcordova
  */
-public class Service  {
+public class ServerService  {
     
-    public void Service() {}
+    public void ServerService() {}
     
-    public String response(URL url, Map<String,Object> params, String token) throws Exception {
+    public String requestPost(URL url, Map<String,Object> params, String token) throws Exception {
         
         StringBuilder postData = new StringBuilder();
+        
         for(Map.Entry<String,Object> param: params.entrySet()){
             if(postData.length() != 0) postData.append('&');
             postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
             postData.append("=");
             postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
         }
+        
         byte[] postDataBytes = postData.toString().getBytes("UTF-8");
         
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -51,6 +52,7 @@ public class Service  {
         
         return sb.toString();
     }
+    
     
     
     

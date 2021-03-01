@@ -3,67 +3,34 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.maypi.balance;
+package com.maypi.view;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import com.maypi.service.UserService;
+import com.maypi.service.response.UserResponse;
 import javax.swing.JOptionPane;
-import org.json.JSONObject;
+
 /**
  *
  * @author rcordova
  */
 public class JFrameLogin extends javax.swing.JFrame {
 
-    String service = "/login";
-    String code = "";
+   
+    UserService userService = new UserService();
+    
     /**
      * Creates new form JFrameLogin
      */
     public JFrameLogin() {
         initComponents();
+        this.setLocationRelativeTo(null);
     }
 
-    private void login(String username, String password) {
-        
-        try {
-            
-            URL url = new URL("http://"+Constan.ruta+this.service);
-            Map<String,Object> params = new LinkedHashMap<>();
-            params.put("username", username);
-            params.put("password", password);
-
-            Service service = new Service();
-            String response = service.response(url, params, "");
-
-            System.out.println(response);
-
-            JSONObject jSONObject = new JSONObject(response.toString());
-            String token = jSONObject.getString("token");
-            
-            this.openJframeBalance(token, this.code);
-
-        } catch (Exception e) {
-            
-            JOptionPane.showMessageDialog(this,"Credenciales erroneas","ERROR",JOptionPane.ERROR_MESSAGE);
-            Logger.getLogger(JFrameLogin.class.getName()).log(Level.SEVERE, null, e);
-
-        }
-        
-    }
-    
-    private void openJframeBalance(String token, String code){
+    private void openJframeBalance(String code, UserResponse userResponse){
         JFrameBalance jframeBalance = new JFrameBalance();
-        jframeBalance.setToken(token);
         jframeBalance.setCode(code);
+        jframeBalance.setUser(userResponse);
         jframeBalance.setVisible(true);
         this.setVisible(false);
     }
@@ -165,12 +132,20 @@ public class JFrameLogin extends javax.swing.JFrame {
     private void jButton_LoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_LoginActionPerformed
         // TODO add your handling code here:
         
-        String username = jTextField_user.getText();
-        String password = jPasswordField_password.getText();
-        code = jTextField_code.getText();
+       String username = jTextField_user.getText();
+       String password = jPasswordField_password.getText();
+       String code = jTextField_code.getText();
         
         if(code.length() > 0){
-            this.login(username, password);
+            
+            UserResponse userResponse = userService.login(username, password);
+            
+            if(userResponse != null){
+                this.openJframeBalance(code, userResponse);
+            } else{
+                JOptionPane.showMessageDialog(this,"Credenciales erroneas","ERROR",JOptionPane.ERROR_MESSAGE);
+            }
+            
         }
         else{
             JOptionPane.showMessageDialog(this,"Ingrese Codigo de Batch","ERROR",JOptionPane.ERROR_MESSAGE);

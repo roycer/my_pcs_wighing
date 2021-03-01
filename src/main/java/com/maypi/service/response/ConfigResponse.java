@@ -3,25 +3,25 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.maypi.balance;
-
-import java.io.Serializable;
+package com.maypi.service.response;
 
 /**
  *
  * @author rcordova
  */
-public class Config implements Serializable {
+public class ConfigResponse implements Response {
     
-    private static final long serialVersionUID = 1L;
     private String port;
     private int baudRate;
     private int numStopBits;
+    private int numDataBits;
     private int parity;
     private int comPortTimeouts;
-
-     public Config() {
+    private boolean status;
+    
+     public ConfigResponse() {
          this.port = "";
+         this.status = true;
      }
 
      public String getPort() {
@@ -64,8 +64,31 @@ public class Config implements Serializable {
          this.comPortTimeouts = comPortTimeouts;
      }
 
-     public boolean isValid(){
-         return (this.port.length() > 0);
-     }
+    public int getNumDataBits() {
+        return numDataBits;
+    }
+
+    public void setNumDataBits(int numDataBits) {
+        this.numDataBits = numDataBits;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    
+    @Override
+    public Boolean getStatus() {
+        
+        if(this.port.length() > 0){
+            return this.status;
+        }
+        
+        return false;
+    }
 
 }

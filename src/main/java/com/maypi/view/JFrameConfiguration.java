@@ -3,14 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.maypi.balance;
+package com.maypi.view;
 
 import com.fazecast.jSerialComm.SerialPort;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import com.maypi.service.ParamService;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -23,29 +20,26 @@ public class JFrameConfiguration extends javax.swing.JFrame {
 
     String tempDir = System.getProperty("java.io.tmpdir");
     JFrameBalance jframeBalance;
-    Config config;
+    ParamService paramService;
     /**
      * Creates new form Configuration
      */
     public JFrameConfiguration() {
         initComponents();
-        this.loadport();
+        this.setLocationRelativeTo(null);
+        this.getAllPort();
+        this.paramService = new ParamService();
+        String port = this.paramService.getParam("port");
+        jTextField_port.setText(port);
     }
 
     public void setJFrameBalance(JFrameBalance jframeBalance){
         
         this.jframeBalance = jframeBalance;
-        config = this.jframeBalance.config;
-        
-        if(config != null && config.isValid()){
-            this.jTextField_port.setText(config.getPort());
-        }
-        else if(config == null){
-            config = new Config();
-        }
+
     }
     
-    private void loadport(){
+    private void getAllPort(){
         jComboBox_port.removeAllItems();
         jComboBox_port.addItem("");
         for(SerialPort i : SerialPort.getCommPorts()){
@@ -157,26 +151,23 @@ public class JFrameConfiguration extends javax.swing.JFrame {
     private void jButton_guardarConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_guardarConfigActionPerformed
         // TODO add your handling code here:
         String port = jComboBox_port.getSelectedItem().toString();
-        if(port.length() > 0){
-            try {
-                this.config.setPort(port);
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(tempDir+jframeBalance.tempConfig));
-                objectOutputStream.writeObject(this.config);
-                objectOutputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        if(port.length() > 0 && this.paramService.setParam("port",port)){
+            jTextField_port.setText(port);
+            JOptionPane.showMessageDialog(this, "Se guardo el Puerto correctamente","INFO",JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this, "Puerto no válido","INFO",JOptionPane.INFORMATION_MESSAGE);
         }
+        
+        
     }//GEN-LAST:event_jButton_guardarConfigActionPerformed
 
     private void jButton_ApplyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_ApplyActionPerformed
         // TODO add your handling code here:
         String port = jComboBox_port.getSelectedItem().toString();
-        if(port.length() > 0){
-            this.config.setPort(port);
-            this.jframeBalance.changeConfig(this.config);
+        if(port.length() > 0 && this.paramService.setParam("port",port)){
+            this.jframeBalance.onChangeConfig();
+            jTextField_port.setText(port);
+            JOptionPane.showMessageDialog(this, "Se aplicaron los cambios","INFO",JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this, "Puerto no válido","INFO",JOptionPane.INFORMATION_MESSAGE);
         }

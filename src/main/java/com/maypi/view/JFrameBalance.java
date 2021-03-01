@@ -3,31 +3,26 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.maypi.balance;
+package com.maypi.view;
 
-import com.fazecast.jSerialComm.SerialPort;
+import com.maypi.util.Reading;
+import com.maypi.service.ConfigService;
+import com.maypi.service.ParamService;
+import com.maypi.service.WeightService;
+import com.maypi.service.response.ConfigResponse;
+import com.maypi.service.response.UserResponse;
+import com.maypi.service.response.WeightResponse;
 import com.sun.glass.events.KeyEvent;
 import java.awt.Image;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
-import static javax.swing.JFileChooser.SAVE_DIALOG;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -41,31 +36,34 @@ import javax.swing.table.TableModel;
  */
 public class JFrameBalance extends javax.swing.JFrame {
 
-    String service = "/weights";
-    private ArrayList<Weight> arrayWeight = new ArrayList();
-    private String tempDir = System.getProperty("java.io.tmpdir");
-    private int nro = 0;
-    public Config config;
-    public String tempRegs = "rc_regs.bin";
-    public String tempConfig = "rc_config.bin";
-    private String token, code;
+    WeightService weightService = new WeightService();
+    ParamService paramService = new ParamService();
+    ConfigService configService = new ConfigService();
+    
+    ConfigResponse configResponse;
+    Reading reading;
+    
+    private ArrayList<WeightResponse> arrayWeight = new ArrayList();
+    
+    private int nro = 0;    
+    private String code;
+    private UserResponse userResponse;
     
     /**
      * Creates new form balance
      */
     public JFrameBalance() {
+        
         initComponents();
         
-        Image i;
-        try {
-            i = ImageIO.read(getClass().getResource("/logo.png"));
-            this.setIconImage(i);
-        } catch (IOException ex) {
-            Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        this.loadregs();
-        this.loadweight();
+        String port = paramService.getParam("port");
+        this.configResponse = this.configService.getConfig();
+        this.configResponse.setPort(port);
+        this.reading = new Reading(configResponse,this);
+        
+        this.initImage();
+        this.loadRegs();
+        this.loadBalance();
         
         //this load port
         this.jButton_load.setMnemonic(KeyEvent.VK_F9);
@@ -79,46 +77,43 @@ public class JFrameBalance extends javax.swing.JFrame {
         jTable_weight.setDefaultRenderer(String.class, centerRenderer);
     }
     
-    public void setToken(String token){
-        this.token = token;
+    private void initImage(){
+        Image i;
+        try {
+            i = ImageIO.read(getClass().getResource("/logo.png"));
+            this.setIconImage(i);
+        } catch (IOException ex) {
+            Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void setUser(UserResponse userResponse){
+        this.userResponse = userResponse;
     }
     
     public void setCode(String code){
         this.code = code;
     }
     
-    public void changeConfig(Config config){
-        this.loadweight(config);
+    public void onDataBalance(String data){
+        jTextField_weight.setText(data);
     }
-    
-     public void response(String data){
-         jTextField_weight.setText(data);
-     }
      
-     private void loadweight(){
-         
+    public void onChangeConfig(){
         try {
-            ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(tempDir+tempConfig));
-            config = (Config) objectInputStream.readObject();
-            objectInputStream.close();
-            
-            if( config != null){
-                this.loadweight(config);
-            }
-            else{
-                JOptionPane.showMessageDialog(this, "Configuracion no existe","INFO",JOptionPane.INFORMATION_MESSAGE);
-            }
+            this.reading.closePort();
+            this.loadBalance();
         } catch (Exception e) {
+            
         }
         
-     }
-     
-     private void loadweight(Config config){
-         
-        if(config != null && config.isValid()){
-            
-            Reading reading = new Reading(config.getPort(),this);
-            
+        
+    }
+    
+    private void loadBalance(){
+          
+        if(this.configResponse.getStatus()){
+
             try {    
                 reading.start();
             } catch (Exception e) {
@@ -126,46 +121,42 @@ public class JFrameBalance extends javax.swing.JFrame {
             }
         }
         else {
-            config = new Config();
-            JOptionPane.showMessageDialog(this, "Puerto desconocido","ERROR",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Configuracion no existe","INFO",JOptionPane.INFORMATION_MESSAGE);
         }
+  
      }
-     
-     private void loadregs(){
+
+     private void loadRegs(){
          
         DefaultTableModel model = (DefaultTableModel) jTable_weight.getModel();
 
-        try {
-            ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(tempDir+tempRegs));
-            arrayWeight = (ArrayList<Weight>)objectInputStream.readObject();
-            objectInputStream.close();
-            if(arrayWeight.size() != 0){
-                int dialogButton = JOptionPane.YES_NO_OPTION;
-                int dialogResult = JOptionPane.showConfirmDialog (null, "Desea cargar registro temporal?","Warning",dialogButton);
-                if(dialogResult == JOptionPane.YES_OPTION){
-                    for (Weight w : arrayWeight){
-                        model.addRow(new Object[]{w.nro, w.weight, w.unit, w.observation});
-                        nro = w.nro;
-                    }
-                }else{
-                    arrayWeight.clear();
+        arrayWeight = weightService.getWeightsFromFileBin();
+            
+        if(arrayWeight.size() != 0){
+            int dialogButton = JOptionPane.YES_NO_OPTION;
+            int dialogResult = JOptionPane.showConfirmDialog (null, "Desea cargar registro temporal?","Warning",dialogButton);
+            if(dialogResult == JOptionPane.YES_OPTION){
+                for (WeightResponse w : arrayWeight){
+                    model.addRow(new Object[]{w.getNro(), w.getWeight(), w.getUnit(), w.getObservation()});
+                    nro = w.getNro();
                 }
+            }else{
+                arrayWeight.clear();
             }
-            
-        } catch (IOException e) {
-            
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
         }
-     }
+            
+
+    }
      
      private void loadreg(){
+         
         nro++;
+        
         String weight = "";
         String unit = "";
-        
+        String observation = jTextField_observation.getText().toString();
         String[] splited = jTextField_weight.getText().toString().split("\\s+");
-        
+         
         if(splited.length == 4 && splited[1].equals("+")){
             weight = splited[2];
             unit = splited[3];
@@ -192,43 +183,26 @@ public class JFrameBalance extends javax.swing.JFrame {
             weight = splited[0];
         }
         
-        String observation = jTextField_observation.getText().toString();
+       
         DefaultTableModel model = (DefaultTableModel) jTable_weight.getModel();
         
-        Weight weightobject = new Weight(nro, weight, unit, observation);
-        arrayWeight.add(weightobject);
+        WeightResponse weightResponse = new WeightResponse(nro, weight, unit, observation);
+        arrayWeight.add(weightResponse);
         
-        this.saveWeight(arrayWeight);
-        this.sendWeight(weightobject);
+        this.weightService.saveWeightsInFileBin(arrayWeight);
+        this.weightService.saveWeight(weightResponse);
         model.addRow(new Object[]{nro, weight, unit, observation});
         
      }
 
-     private void sendWeight(Weight weightobject){
-         Service service = new Service();
-         try {
-            URL url = new URL("http://"+Constan.ruta+this.service);
-            Map<String,Object> params = new LinkedHashMap<>();
-            params.put("code", this.code);
-            params.put("nro", weightobject.nro);
-            params.put("weight", weightobject.weight);
-            params.put("unit", weightobject.unit);
-            params.put("observation", weightobject.observation);
-            
-            String response = service.response(url, params, this.token);
-            
-         } catch (Exception e) {
-         }
-         
-         
-     }
-     
      private void cleanreg(){
-        arrayWeight.clear();
-        this.saveWeight(arrayWeight);
+
         int dialogButton = JOptionPane.YES_NO_OPTION;
         int dialogResult = JOptionPane.showConfirmDialog (null, "Desea limpiar registro?","Warning",dialogButton);
+        
         if(dialogResult == JOptionPane.YES_OPTION){
+            arrayWeight.clear();
+            this.weightService.saveWeightsInFileBin(arrayWeight);
             DefaultTableModel model = (DefaultTableModel) jTable_weight.getModel();
             int rowCount = model.getRowCount();
             //Remove rows one by one from the end of the table
@@ -237,9 +211,11 @@ public class JFrameBalance extends javax.swing.JFrame {
             this.nro = 0;
         }
      }
+     
      private void download(){
          
         JFileChooser chooser = new JFileChooser();
+        chooser.setSelectedFile(new File(this.code));
         chooser.setDialogTitle("Specificar archivos a guardar");
         int userSelection = chooser.showSaveDialog(this);
         
@@ -259,8 +235,8 @@ public class JFrameBalance extends javax.swing.JFrame {
             Boolean flag = true;
             
             if(file.exists()){
-                int result = JOptionPane.showConfirmDialog(this,"El archivo existe,  ¿Desea sobrescribir?","Archivo existente",JOptionPane.YES_NO_CANCEL_OPTION);
-                if(result != JOptionPane.YES_OPTION) flag = false;
+                JOptionPane.showMessageDialog(this,"El archivo existe,  Cambie el nombre","Archivo existente",JOptionPane.INFORMATION_MESSAGE);
+                flag = false;
             }
             
             if(flag){
@@ -292,15 +268,7 @@ public class JFrameBalance extends javax.swing.JFrame {
             
         }
      }     
-     private void saveWeight(ArrayList<Weight> arrayWeight){
-         try {
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(tempDir+tempRegs));
-            objectOutputStream.writeObject(arrayWeight);
-            objectOutputStream.close();
-        } catch (IOException ex) {
-            Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
-        }
-     }
+     
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -347,7 +315,7 @@ public class JFrameBalance extends javax.swing.JFrame {
         jMenuBar1.add(jMenu2);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("TELECOM - WEIGHING SYSTEM v1.0.1");
+        setTitle("MYSAC - WEIGHING SYSTEM v1.0.1");
         setExtendedState(6);
         setForeground(java.awt.Color.red);
 
@@ -509,6 +477,8 @@ public class JFrameBalance extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
+
+        jPanel2.getAccessibleContext().setAccessibleDescription("");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
