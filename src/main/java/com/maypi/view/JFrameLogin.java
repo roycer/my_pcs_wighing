@@ -8,6 +8,11 @@ package com.maypi.view;
 
 import com.maypi.service.UserService;
 import com.maypi.service.response.UserResponse;
+import java.awt.Image;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 
 /**
@@ -24,6 +29,7 @@ public class JFrameLogin extends javax.swing.JFrame {
      */
     public JFrameLogin() {
         initComponents();
+        initImage();
         this.setLocationRelativeTo(null);
     }
 
@@ -33,6 +39,16 @@ public class JFrameLogin extends javax.swing.JFrame {
         jframeBalance.setUser(userResponse);
         jframeBalance.setVisible(true);
         this.setVisible(false);
+    }
+    
+    private void initImage(){
+        Image i;
+        try {
+            i = ImageIO.read(getClass().getResource("/logo.png"));
+            this.setIconImage(i);
+        } catch (IOException ex) {
+            Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -53,6 +69,7 @@ public class JFrameLogin extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("MYSAC - WEIGHING SYSTEM");
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 

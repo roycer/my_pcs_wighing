@@ -16,6 +16,7 @@ public interface WeightRepository {
     
     Weight getWeightById(Long id);
     List<Weight> getWeightByCode(String code);
+    List<Weight> getWeightToSync();
     Weight saveWeight(Weight weight);
     void deleteWeight(Weight weight);
     

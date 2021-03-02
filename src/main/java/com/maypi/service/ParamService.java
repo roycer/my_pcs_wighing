@@ -17,12 +17,14 @@ import javax.persistence.Persistence;
  */
 public class ParamService {
     
+    EntityManagerFactory emf = Persistence.createEntityManagerFactory("MyDatabase");
+    EntityManager em;
+    
     public ParamService(){}
     
     public String getParam(String field){
-        
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("MyDatabase");
-        EntityManager em = emf.createEntityManager();
+
+        em = emf.createEntityManager();
         
         ParamRepositoryImpl pi = new ParamRepositoryImpl(em);
         Param param = pi.getParamByField(field);
@@ -37,13 +39,12 @@ public class ParamService {
     
     public Boolean setParam(String field, String value){
         
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("MyDatabase");
-        EntityManager em = emf.createEntityManager();
+        em = emf.createEntityManager();
 
         ParamRepositoryImpl pi = new ParamRepositoryImpl(em);
         Param param = pi.getParamByField(field);
         
-         em.getTransaction().begin();
+        em.getTransaction().begin();
         if(param!=null){
             param = pi.saveParam(param);
         }
@@ -52,7 +53,7 @@ public class ParamService {
         }
 
         em.getTransaction().commit();
-        
+//        em.close();
         if(param!=null){
             return true;
         }

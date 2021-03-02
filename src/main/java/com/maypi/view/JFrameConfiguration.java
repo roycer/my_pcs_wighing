@@ -7,9 +7,12 @@ package com.maypi.view;
 
 import com.fazecast.jSerialComm.SerialPort;
 import com.maypi.service.ParamService;
+import java.awt.Image;
+import java.io.IOException;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 
 /**
@@ -26,6 +29,7 @@ public class JFrameConfiguration extends javax.swing.JFrame {
      */
     public JFrameConfiguration() {
         initComponents();
+        this.initImage();
         this.setLocationRelativeTo(null);
         this.getAllPort();
         this.paramService = new ParamService();
@@ -33,6 +37,16 @@ public class JFrameConfiguration extends javax.swing.JFrame {
         jTextField_port.setText(port);
     }
 
+    private void initImage(){
+        Image i;
+        try {
+            i = ImageIO.read(getClass().getResource("/logo.png"));
+            this.setIconImage(i);
+        } catch (IOException ex) {
+            Logger.getLogger(JFrameBalance.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     public void setJFrameBalance(JFrameBalance jframeBalance){
         
         this.jframeBalance = jframeBalance;
@@ -65,7 +79,7 @@ public class JFrameConfiguration extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Configuración");
+        setTitle("MYSAC - WEIGHING SYSTEM");
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -138,7 +152,7 @@ public class JFrameConfiguration extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.EntityManager;
@@ -32,14 +33,15 @@ public class WeightService {
     public String tempRegs = "rc_regs.bin";
     public String tempConfig = "rc_config.bin";
     
+    EntityManagerFactory emf = Persistence.createEntityManagerFactory("MyDatabase");
+    EntityManager em;
+    
     public WeightService(){
-        
     }
     
     public Boolean saveWeight(WeightResponse weightResponse){
         
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("MyDatabase");
-        EntityManager em = emf.createEntityManager();
+        em = emf.createEntityManager();
 
         WeightRepositoryImpl wi = new WeightRepositoryImpl(em);
         
@@ -61,7 +63,7 @@ public class WeightService {
         
         
     }
-    
+ 
     public ArrayList<WeightResponse> getWeightsFromFileBin(){
         
         ArrayList<WeightResponse> weights = new ArrayList<WeightResponse>();

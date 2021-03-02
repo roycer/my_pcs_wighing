@@ -40,10 +40,6 @@ public class WeightResponse implements Response, Serializable {
         this.status = true;
     }
 
-    public WeightResponse(int nro, WeightResponse weight, String unit, String observation) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
     public int getNro() {
         return nro;
     }

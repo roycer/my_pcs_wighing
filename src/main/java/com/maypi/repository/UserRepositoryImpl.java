@@ -34,7 +34,7 @@ public class UserRepositoryImpl implements UserRepository {
         query.setParameter("password", password);
 
         if(query.getResultList().size()>0){
-            return query.getSingleResult();
+            return query.getResultStream().findFirst().orElse(null);
         }
 
         return null; 

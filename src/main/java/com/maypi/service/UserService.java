@@ -18,29 +18,23 @@ import javax.persistence.Persistence;
  */
 public class UserService {
         
+    EntityManagerFactory emf = Persistence.createEntityManagerFactory("MyDatabase");
+    EntityManager em;
+    
     public UserService(){
     }
     
     public UserResponse login(String username, String password){
         
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("MyDatabase");
-        EntityManager em = emf.createEntityManager();
+        em = emf.createEntityManager();
         
         UserRepositoryImpl ui = new UserRepositoryImpl(em);
         User user = ui.login(username, password);
         
-        if(user == null){
-            em.getTransaction().begin();
-            user = new User("operador", "123456");
-            ui.saveUser(user);
-            em.getTransaction().commit();
-        }
-      
-        if(user!=null){
-            UserResponse userResponse = new UserResponse(user.getUsername(), user.getToken());
-            return userResponse;
-        }
+        if(user == null) return null;
         
-        return null;
+        UserResponse userResponse = new UserResponse(user.getUsername(), user.getToken());
+        return userResponse;
+        
     }
 }

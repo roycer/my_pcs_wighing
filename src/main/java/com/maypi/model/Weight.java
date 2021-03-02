@@ -47,7 +47,7 @@ public class Weight implements Serializable {
     
     @Column
     private Boolean sync;
-    
+  
     public Weight() {
     }
 
@@ -116,5 +116,13 @@ public class Weight implements Serializable {
 
     public void setCode(String code) {
         this.code = code;
+    }
+    
+    public Boolean getSync() {
+        return sync;
+    }
+
+    public void setSync(Boolean sync) {
+        this.sync = sync;
     }
 }

@@ -35,6 +35,12 @@ public class WeightRepositoryImpl implements WeightRepository {
     }
 
     @Override
+    public List<Weight> getWeightToSync() {
+        TypedQuery<Weight> query = em.createQuery("SELECT w FROM Weight w WHERE w.sync IS NULL OR w.sync = 0",Weight.class);
+        return query.getResultList();
+    }
+    
+    @Override
     public Weight saveWeight(Weight weight) {
         if (weight.getId() == null) {
             em.persist(weight);
