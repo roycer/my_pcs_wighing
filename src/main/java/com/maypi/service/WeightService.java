@@ -27,25 +27,30 @@ import javax.persistence.Persistence;
  *
  * @author mysac
  */
-public class WeightService {
+public class WeightService extends Thread {
     
     private String path_temp = System.getProperty("java.io.tmpdir");
     public String tempRegs = "rc_regs.bin";
     public String tempConfig = "rc_config.bin";
-    
+    private WeightResponse weightResponse;
     EntityManagerFactory emf = Persistence.createEntityManagerFactory("MyDatabase");
     EntityManager em;
     
     public WeightService(){
     }
     
-    public Boolean saveWeight(WeightResponse weightResponse){
-        
+    public void setWeightResponse(WeightResponse weightResponse){
+        this.weightResponse = weightResponse;
+    }
+ 
+    @Override
+    public void run(){
+
         em = emf.createEntityManager();
 
         WeightRepositoryImpl wi = new WeightRepositoryImpl(em);
         
-        Weight weight = new Weight(weightResponse.getNro(), weightResponse.getWeight(), weightResponse.getUnit(), weightResponse.getObservation());
+        Weight weight = new Weight(weightResponse.getNro(), weightResponse.getWeight(), weightResponse.getUnit(), weightResponse.getObservation(), weightResponse.getCode());
         
         em.getTransaction().begin();
         
@@ -55,15 +60,8 @@ public class WeightService {
        
         em.getTransaction().commit();
         
-        if(weight!=null){
-            return true;
-        }
-
-        return false;
-        
-        
     }
- 
+    
     public ArrayList<WeightResponse> getWeightsFromFileBin(){
         
         ArrayList<WeightResponse> weights = new ArrayList<WeightResponse>();

@@ -27,7 +27,7 @@ public class WeightResponse implements Response, Serializable {
         this.weight = weight;
         this.unit = unit;
         this.observation = observation;
-        this.code = "";
+        this.code = "na";
         this.status = true;
     }
     

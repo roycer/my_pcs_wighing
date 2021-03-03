@@ -40,7 +40,7 @@ import javax.swing.table.TableModel;
 public class JFrameBalance extends javax.swing.JFrame {
 
     WeightService weightService = new WeightService();
-    WeightServerService weightServerService = new WeightServerService();
+    
     ParamService paramService = new ParamService();
     ConfigService configService = new ConfigService();
     
@@ -59,12 +59,6 @@ public class JFrameBalance extends javax.swing.JFrame {
     public JFrameBalance() {
         
         initComponents();
-        
-        String port = paramService.getParam("port");
-        this.configResponse = this.configService.getConfig();
-        this.configResponse.setPort(port);
-        this.reading = new Reading(configResponse,this);
-        
         this.initImage();
         this.loadRegs();
         this.loadBalance();
@@ -122,10 +116,15 @@ public class JFrameBalance extends javax.swing.JFrame {
     
     private void loadBalance(){
           
+        String port = paramService.getParam("port");
+        this.configResponse = this.configService.getConfig();
+        this.configResponse.setPort(port);
+        
         if(this.configResponse.getStatus()){
 
-            try {    
-                reading.start();
+            try {
+                this.reading = new Reading(configResponse,this);
+                this.reading.start();
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, e.getMessage(),"ERROR",JOptionPane.ERROR_MESSAGE);
             }
@@ -159,7 +158,7 @@ public class JFrameBalance extends javax.swing.JFrame {
     }
      
      private void loadreg(){
-         
+
         nro++;
         
         String weight = "";
@@ -196,12 +195,17 @@ public class JFrameBalance extends javax.swing.JFrame {
        
         DefaultTableModel model = (DefaultTableModel) jTable_weight.getModel();
         
-        WeightResponse weightResponse = new WeightResponse(nro, weight, unit, observation);
+        WeightResponse weightResponse = new WeightResponse(nro, weight, unit, observation, this.code);
         arrayWeight.add(weightResponse);
         
         this.weightService.saveWeightsInFileBin(arrayWeight);
-        this.weightService.saveWeight(weightResponse);
         model.addRow(new Object[]{nro, weight, unit, observation});
+        
+        WeightService newWeightService = new WeightService();
+        newWeightService.setWeightResponse(weightResponse);
+        newWeightService.start();
+        //this.weightService.saveWeight(weightResponse);
+        
         
      }
 
@@ -550,7 +554,8 @@ public class JFrameBalance extends javax.swing.JFrame {
 
     private void jButton_syncActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_syncActionPerformed
         // TODO add your handling code here:
-        this.weightServerService.start();
+        WeightServerService weightServerService = new WeightServerService();
+        weightServerService.start();
        
     }//GEN-LAST:event_jButton_syncActionPerformed
 

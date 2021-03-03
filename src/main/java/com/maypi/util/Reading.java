@@ -27,11 +27,8 @@ public class Reading extends Thread {
         
         this.flagReading = true;
         this.frame = frame;
-         
-        if(configResponse.getStatus()){
-            this.configResponse = configResponse;
-        }
-        
+        this.setConfigResponse(configResponse);
+   
     }
     
     @Override
@@ -41,12 +38,12 @@ public class Reading extends Thread {
         this.serialport.setNumDataBits(this.configResponse.getNumDataBits());
         this.serialport.setNumStopBits(this.configResponse.getNumStopBits());
         this.serialport.setParity​(this.configResponse.getParity());
-        this.serialport.setComPortTimeouts(this.configResponse.getComPortTimeouts(), 0, 0);
-
+        this.serialport.setComPortTimeouts(this.configResponse.getComPortTimeouts(),0, 0);
+        
         this.serialport.openPort();
 
         try {
-            this.inputstream = serialport.getInputStream();
+            this.inputstream = this.serialport.getInputStream();
             this.scanner = new Scanner(this.inputstream); 
             this.scanner.nextLine();
 
@@ -68,7 +65,7 @@ public class Reading extends Thread {
     private void response(String data){
         
         switch(frame.getClass().getName()){
-            case "com.maypi.balance.JFrameBalance": 
+            case "com.maypi.view.JFrameBalance": 
                 ((JFrameBalance)frame).onDataBalance(data);
                 break;          
         }
@@ -86,7 +83,11 @@ public class Reading extends Thread {
     }
 
     public void setConfigResponse(ConfigResponse configResponse) {
-        this.configResponse = configResponse;
+        if(configResponse.getStatus()){
+            this.serialport = SerialPort.getCommPort(configResponse.getPort());
+            this.configResponse = configResponse;
+        }
+        
     }
   
 }

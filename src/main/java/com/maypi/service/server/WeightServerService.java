@@ -8,23 +8,15 @@ package com.maypi.service.server;
 import com.maypi.model.Weight;
 import com.maypi.repository.WeightRepositoryImpl;
 import com.maypi.service.*;
-import com.maypi.service.response.WeightResponse;
-import com.maypi.service.server.ServerService;
-import com.maypi.util.Reading;
-import com.maypi.view.JFrameLogin;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import javax.swing.JOptionPane;
-import org.json.JSONObject;
 
 /**
  *
@@ -38,11 +30,29 @@ public class WeightServerService extends Thread {
 
     EntityManagerFactory emf = Persistence.createEntityManagerFactory("MyDatabase");
     EntityManager em;
+    ParamService param = new ParamService();
     
     ServerService serverService;
     
     public WeightServerService(){
         this.serverService = new ServerService();
+        
+        String temp_endpoint = this.param.getParam("endpoint");
+        String temp_address = this.param.getParam("address");
+        
+        if(temp_endpoint != null && temp_endpoint.length() > 0){
+            this.endpoint = temp_endpoint;
+        }else{
+            this.param.setParam("endpoint", "/weights");
+            
+        }
+        
+        if(temp_address != null && temp_address.length() > 0){
+            this.address = temp_address;
+        }else{
+            this.param.setParam("address", "10.10.22.8:8807/api/v1");
+        }
+        
     }
     
     public WeightServerService(String token){
@@ -72,7 +82,8 @@ public class WeightServerService extends Thread {
         catch (Exception e) {
             Logger.getLogger(WeightServerService.class.getName()).log(Level.SEVERE, null, e);
         }  
-        em.close();
+        
+
     }
     
     private boolean sendWeight(Weight weightobject){
@@ -87,11 +98,15 @@ public class WeightServerService extends Thread {
             params.put("observation", weightobject.getObservation());
 
             String response = serverService.requestPost(url, params, this.token);
-            System.out.println(response);
+
+            if(response.indexOf("success")>0 || response.indexOf("fail")>0){
+                return true;
+            }
+
         } catch (Exception e) {
              Logger.getLogger(WeightServerService.class.getName()).log(Level.SEVERE, null, e);
         }
          
-        return true;
+        return false;
     }
 }

@@ -46,6 +46,7 @@ public class ParamService {
         
         em.getTransaction().begin();
         if(param!=null){
+            param.setValue(value);
             param = pi.saveParam(param);
         }
         else{
